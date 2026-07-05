@@ -66,8 +66,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            remnawave/subscription-page:dev
-            ghcr.io/remnawave/subscription-page:dev
+            ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:dev
+            ghcr.io/${{ github.repository_owner }}/remnawave_sub_page:dev
 
   send-telegram-message:
     name: Send Telegram message

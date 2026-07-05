@@ -104,7 +104,7 @@ jobs:
           file: Dockerfile
           platforms: ${{ matrix.platform }}
           outputs: |
-            type=image,"name=remnawave/subscription-page,ghcr.io/remnawave/subscription-page",push-by-digest=true,name-canonical=true,push=true
+            type=image,"name=${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page,ghcr.io/${{ github.repository_owner }}/remnawave_sub_page",push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -152,17 +152,17 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create \
-            -t remnawave/subscription-page:latest \
-            -t remnawave/subscription-page:${{ github.ref_name }} \
-            $(printf 'remnawave/subscription-page@sha256:%s ' *)
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:${{ github.ref_name }} \
+            $(printf '${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page@sha256:%s ' *)
 
           docker buildx imagetools create \
-            -t ghcr.io/remnawave/subscription-page:latest \
-            -t ghcr.io/remnawave/subscription-page:${{ github.ref_name }} \
-            $(printf 'ghcr.io/remnawave/subscription-page@sha256:%s ' *)
+            -t ghcr.io/${{ github.repository_owner }}/remnawave_sub_page:latest \
+            -t ghcr.io/${{ github.repository_owner }}/remnawave_sub_page:${{ github.ref_name }} \
+            $(printf 'ghcr.io/${{ github.repository_owner }}/remnawave_sub_page@sha256:%s ' *)
 
       - name: Inspect image
-        run: docker buildx imagetools inspect remnawave/subscription-page:${{ github.ref_name }}
+        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:${{ github.ref_name }}
 
   send-telegram-message:
     name: Send Telegram message
