@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { RootModule } from './root/root.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
-    imports: [RootModule],
+    imports: [SubscriptionModule],
 })
 export class SubscriptionPageBackendModule {}

@@ -21,6 +21,11 @@
     "start:dev": "NODE_ENV=development nest start --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production NODE_NO_WARNINGS=1 node dist/src/main",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:e2e": "vitest run test",
+    "test:live": "vitest run test/live",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "lint:fix:imports": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix --rule 'perfectionist/sort-imports: error'"
@@ -47,7 +52,7 @@
     "morgan": "^1.11.0",
     "nanoid": "5.1.15",
     "nest-winston": "^1.10.2",
-    "nestjs-zod": "4.3.1",
+    "nestjs-zod": "5.4.0",
     "pkg-types": "2.3.1",
     "proxy-addr": "^2.0.7",
     "reflect-metadata": "0.2.2",
@@ -57,11 +62,13 @@
     "table": "^6.9.0",
     "winston": "^3.19.0",
     "xbytes": "^1.9.1",
-    "zod": "3.25.76"
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.23",
     "@nestjs/schematics": "11.1.0",
+    "@nestjs/testing": "^11.1.27",
+    "@swc/core": "^1.15.43",
     "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
@@ -75,8 +82,10 @@
     "@types/passport-http": "^0.3.11",
     "@types/proxy-addr": "^2.0.3",
     "@types/semver": "^7.7.1",
+    "@types/supertest": "^7.2.0",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "eslint": "9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-paths": "^1.1.0",
@@ -85,11 +94,15 @@
     "globals": "^16.5.0",
     "prettier": "^3.7.4",
     "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
     "ts-loader": "9.5.4",
     "ts-node": "10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.49.0"
+    "typescript-eslint": "^8.49.0",
+    "unplugin-swc": "^1.5.9",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.9"
   },
   "overrides": {
     "multer": "2.2.0"

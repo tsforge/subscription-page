@@ -2,14 +2,14 @@ import { z, ZodError } from 'zod';
 
 export function validateEnvConfig<T>(schema: z.ZodType, config: Record<string, unknown>): T {
     try {
-        return schema.parse(config);
+        return schema.parse(config) as T;
     } catch (e) {
         if (e instanceof ZodError) {
-            const formattedErrors = e.errors
+            const formattedErrors = e.issues
                 .map((err) => `❌ ${err.path.join('.')}: ${err.message}`)
                 .join('\n');
 
-            const errorMessage = `
+            const errorMessage = ` 
 🔧 Environment Configuration Errors:
 ${formattedErrors}
 

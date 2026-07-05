@@ -83,8 +83,6 @@ export class AxiosService implements OnModuleInit {
 
         this.subpageVersion = pkg.version!;
 
-        this.logger.log(`Remnawave API URL: ${this.axiosInstance.defaults.baseURL}`);
-
         const remnawaveMetadata = await this.getRemnawaveMetadata();
         if (!remnawaveMetadata.isOk || !remnawaveMetadata.remnawaveVersion) {
             this.logger.error(
@@ -321,6 +319,8 @@ export class AxiosService implements OnModuleInit {
                     Authorization: undefined,
                 },
             });
+            console.error('dsadasdsadsasdsa');
+            console.log(response.data);
 
             return {
                 response: response.data,

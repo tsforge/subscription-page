@@ -34,7 +34,6 @@ export class SubpageConfigService implements OnApplicationBootstrap {
 
         if (subscriptionPageConfigList.length === 0) {
             this.logger.error('[FATAL] Subscription page config list is empty, exiting...');
-
             exit(1);
         }
 

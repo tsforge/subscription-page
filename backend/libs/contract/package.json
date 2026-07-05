@@ -1,0 +1,27 @@
+{
+  "name": "@tsforge/remnawave-sub-page",
+  "version": "0.0.1",
+  "description": "contracts",
+  "scripts": {
+    "clean": "rm -rf build",
+    "build:backend": "tsc -p tsconfig.backend.json",
+    "build:frontend": "tsc -p tsconfig.frontend.json",
+    "build": "npm run clean && npm run build:backend && npm run build:frontend",
+    "prepublish": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "main": "build/backend/index.js",
+  "browser": "build/frontend/index.js",
+  "types": "build/backend/index.d.ts",
+  "files": [
+    "build/**/*"
+  ]
+}

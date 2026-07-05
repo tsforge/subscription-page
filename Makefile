@@ -1,6 +1,6 @@
 # Makefile for version bumping and dependency installation
 
-.PHONY: bump-patch bump-minor bump-major install help tag-release
+.PHONY: bump-patch bump-minor bump-major install help tag-release dev-backend dev-frontend dev-web build-web build start
 
 # Default target
 help:
@@ -9,6 +9,11 @@ help:
 	@echo "  bump-minor  - Bump minor version (x.X.x) for both backend and frontend"
 	@echo "  bump-major  - Bump major version (X.x.x) for both backend and frontend"
 	@echo "  install     - Run npm install in both backend and frontend directories"
+	@echo "  build-web   - Build frontend into backend/dev_frontend (for full dev on :3010)"
+	@echo "  dev-backend - Run backend in watch mode (NestJS, port 3010, serves dev_frontend + REAL data)"
+	@echo "  dev-frontend- Run frontend with hot-reload (Vite, port 3334, mock data)"
+	@echo "  build       - Build frontend and backend for production"
+	@echo "  start       - Run backend in production mode (requires build first)"
 	@echo "  bump-and-install-patch  - Bump patch version and install dependencies"
 	@echo "  bump-and-install-minor  - Bump minor version and install dependencies"
 	@echo "  bump-and-install-major  - Bump major version and install dependencies"
@@ -43,6 +48,43 @@ install:
 	@echo "📦 Installing frontend dependencies..."
 	@cd frontend && npm install
 	@echo "✅ Dependencies installed successfully!"
+
+# Build frontend into backend/dev_frontend (dev backend serves views from there)
+build-web:
+	@echo "📦 Building frontend into backend/dev_frontend..."
+	@cd frontend && npm run cb
+	@rm -rf backend/dev_frontend
+	@ln -s ../frontend/dist backend/dev_frontend
+	@echo "✅ dev_frontend is ready (symlink -> frontend/dist)."
+
+# Run backend in watch mode (NestJS, port 3010) — serves dev_frontend + real panel data
+dev-backend: | backend/dev_frontend
+	@echo "🚀 Starting backend in watch mode on port 3010..."
+	@echo "   Open http://localhost:3010/<shortUuid>"
+	@cd backend && npm run start:dev
+
+# Ensure dev_frontend exists before dev-backend (order-only prerequisite)
+backend/dev_frontend:
+	@echo "⚠️  backend/dev_frontend missing — building frontend first..."
+	@$(MAKE) build-web
+
+# Run frontend with hot-reload (Vite, port 3334)
+dev-frontend:
+	@echo "🚀 Starting frontend with hot-reload on port 3334..."
+	@cd frontend && npm run start:dev
+
+# Build frontend and backend for production
+build:
+	@echo "📦 Building frontend..."
+	@cd frontend && npm run cb
+	@echo "📦 Building backend..."
+	@cd backend && npm run build
+	@echo "✅ Build completed successfully!"
+
+# Run backend in production mode (requires build first)
+start:
+	@echo "🚀 Starting backend in production mode on port 3010..."
+	@cd backend && npm run start:prod
 
 # Combined targets
 bump-and-install-patch: bump-patch install

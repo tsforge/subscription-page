@@ -12,7 +12,7 @@ import { configSchema, Env } from '.';
         ConfigModule.forRoot({
             isGlobal: true,
             cache: true,
-            envFilePath: '.env',
+            envFilePath: ['.env', '../.env'],
             validate: (config) => validateEnvConfig<Env>(configSchema, config),
         }),
     ],
