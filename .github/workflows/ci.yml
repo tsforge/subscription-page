@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend · typecheck, lint & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      REMNAWAVE_PANEL_URL: ${{ secrets.REMNAWAVE_PANEL_URL }}
+      REMNAWAVE_API_TOKEN: ${{ secrets.REMNAWAVE_API_TOKEN }}
+      INTERNAL_JWT_SECRET: ${{ secrets.INTERNAL_JWT_SECRET }}
+      CLOUDFLARE_ZERO_TRUST_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ZERO_TRUST_CLIENT_SECRET }}
+      CLOUDFLARE_ZERO_TRUST_CLIENT_ID: ${{ secrets.CLOUDFLARE_ZERO_TRUST_CLIENT_ID }}
+      APP_PORT: '3010'
+      TRUST_PROXY: '1'
+      MARZBAN_LEGACY_LINK_ENABLED: 'false'
+      MARZBAN_LEGACY_DROP_REVOKED_SUBSCRIPTIONS: 'false'
+    outputs:
+      failed_stage: ${{ steps.failed.outputs.stage }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        id: install
+        run: npm ci
+
+      - name: Typecheck
+        id: typecheck
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Lint
+        id: lint
+        run: npm run lint
+
+      - name: Test
+        id: test
+        run: npm test
+
+      - name: Determine failed stage
+        id: failed
+        if: failure()
+        run: |
+          if [ "${{ steps.install.outcome }}" = "failure" ]; then
+            stage="dependency install (npm ci)"
+          elif [ "${{ steps.typecheck.outcome }}" = "failure" ]; then
+            stage="typecheck (tsc)"
+          elif [ "${{ steps.lint.outcome }}" = "failure" ]; then
+            stage="lint"
+          elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+            stage="tests"
+          else
+            stage="unknown step"
+          fi
+          echo "stage=$stage" >> "$GITHUB_OUTPUT"
+
+  notify-success:
+    name: Send Telegram message
+    needs: [backend]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Send Telegram message
+        uses: proDreams/actions-telegram-notifier@main
+        with:
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
+          status: success
+          notify_fields: 'repository,branch,commit,workflow'
+          title: '✅ CI passed: typecheck, lint & tests'
+
+  notify-on-error:
+    name: Send Telegram message on error
+    needs: [backend]
+    if: failure() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Send Telegram message
+        uses: proDreams/actions-telegram-notifier@main
+        with:
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
+          status: error
+          notify_fields: 'repository,branch,commit,workflow'
+          title: '❌ CI failed at: ${{ needs.backend.outputs.failed_stage }}'
+          message: 'Backend CI failed at the "${{ needs.backend.outputs.failed_stage }}" stage.'
