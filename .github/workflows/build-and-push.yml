@@ -89,13 +89,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.TOKEN_GH_DEPLOY }}
-
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v7
@@ -104,7 +97,7 @@ jobs:
           file: Dockerfile
           platforms: ${{ matrix.platform }}
           outputs: |
-            type=image,"name=${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page,ghcr.io/${{ github.repository_owner }}/remnawave_sub_page",push-by-digest=true,name-canonical=true,push=true
+            type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -141,13 +134,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.TOKEN_GH_DEPLOY }}
-
       - name: Create & push manifest lists
         working-directory: ${{ runner.temp }}/digests
         run: |
@@ -155,11 +141,6 @@ jobs:
             -t ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:latest \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:${{ github.ref_name }} \
             $(printf '${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page@sha256:%s ' *)
-
-          docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository_owner }}/remnawave_sub_page:latest \
-            -t ghcr.io/${{ github.repository_owner }}/remnawave_sub_page:${{ github.ref_name }} \
-            $(printf 'ghcr.io/${{ github.repository_owner }}/remnawave_sub_page@sha256:%s ' *)
 
       - name: Inspect image
         run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/remnawave_sub_page:${{ github.ref_name }}
