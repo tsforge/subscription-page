@@ -11,6 +11,7 @@ import { AxiosService } from '@common/axios/axios.service';
 import { IGNORED_HEADERS } from '@common/constants';
 
 import { MarzbanSubscriptionService } from '@modules/marzban/marzban-subscription.service';
+import { SubscriptionInjectorService } from '@modules/injector';
 
 import { SubpageConfigService } from './subpage-config.service';
 import { IServeSubscriptionParams } from './interfaces';
@@ -24,6 +25,7 @@ export class SubscriptionService {
         private readonly axiosService: AxiosService,
         private readonly subpageConfigService: SubpageConfigService,
         private readonly marzbanSubscriptionService: MarzbanSubscriptionService,
+        private readonly subscriptionInjectorService: SubscriptionInjectorService,
     ) {}
 
     public async serveSubscriptionPage(params: IServeSubscriptionParams): Promise<void> {
@@ -72,11 +74,27 @@ export class SubscriptionService {
                 return;
             }
 
-            const isExpire = this.isSubscriptionExpired(subscriptionDataResponse.headers);
+            const debugBody = subscriptionDataResponse.response;
+            const debugHeaders = subscriptionDataResponse.headers as Record<string, unknown>;
+            this.logger.debug(
+                `subscription body ` +
+                    `[content-type=${debugHeaders['content-type']}] ` +
+                    `[userinfo=${debugHeaders['subscription-userinfo']}]\n` +
+                    (typeof debugBody === 'string'
+                        ? debugBody
+                        : JSON.stringify(debugBody, null, 2)),
+            );
 
+            const isExpire = this.isSubscriptionExpired(subscriptionDataResponse.headers);
             this.logger.debug(
                 `Subscription ${shortUuidLocal} (clientType=${clientType ?? 'raw'}) isExpire=${isExpire}`,
             );
+
+            let responseBody = subscriptionDataResponse.response;
+
+            if (isExpire && this.subscriptionInjectorService.isEnabled()) {
+                responseBody = this.subscriptionInjectorService.inject(responseBody, clientType);
+            }
 
             if (subscriptionDataResponse.headers) {
                 Object.entries(subscriptionDataResponse.headers)
@@ -85,7 +103,7 @@ export class SubscriptionService {
                         res.setHeader(key, value);
                     });
             }
-            res.status(200).send(subscriptionDataResponse.response);
+            res.status(200).send(responseBody);
             return;
         } catch (error) {
             this.logger.error('Error in serveSubscriptionPage', error);

@@ -2,6 +2,8 @@ import { createZodDto } from 'nestjs-zod';
 import proxyaddr from 'proxy-addr';
 import { z } from 'zod';
 
+import { INJECT_MODES, INJECT_MODES_CONFIG } from '@contract/constants';
+
 const booleanString = (def: 'true' | 'false' = 'false') =>
     z
         .string()
@@ -62,12 +64,29 @@ export const configSchema = z
         CLOUDFLARE_ZERO_TRUST_CLIENT_ID: z.optional(z.string()),
         CLOUDFLARE_ZERO_TRUST_CLIENT_SECRET: z.optional(z.string()),
 
+        // Allowed CORS origin(s), comma-separated. Empty = same-origin only (CORS disabled).
+        CORS_ORIGIN: z.optional(z.string()),
+
         MARZBAN_LEGACY_LINK_ENABLED: booleanString(),
         MARZBAN_LEGACY_SECRET_KEY: z.optional(z.string()),
         MARZBAN_LEGACY_SUBSCRIPTION_VALID_FROM: z.optional(z.string()),
         MARZBAN_LEGACY_DROP_REVOKED_SUBSCRIPTIONS: booleanString(),
         INTERNAL_JWT_SECRET: z.string(),
         EGAMES_COOKIE: z.optional(z.string()),
+
+        EXPIRED_SUB_INJECT_ENABLED: booleanString(),
+        EXPIRED_SUB_INJECT_MODE: z
+            .string()
+            .default(INJECT_MODES_CONFIG.prepend)
+            .transform((val) => (val.trim() === '' ? INJECT_MODES_CONFIG.prepend : val.trim()))
+            .refine(
+                (val) => (INJECT_MODES as readonly string[]).includes(val),
+                `Must be one of: ${INJECT_MODES.join(', ')}.`,
+            )
+            .pipe(z.enum(INJECT_MODES)),
+        EXPIRED_SUB_INJECT_CLASH: z.optional(z.string()),
+        EXPIRED_SUB_INJECT_CLASH_RULES: z.optional(z.string()),
+        EXPIRED_SUB_INJECT_XRAY: z.optional(z.string()),
     })
     .superRefine((data, ctx) => {
         if (

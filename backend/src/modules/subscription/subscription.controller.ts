@@ -35,11 +35,12 @@ export class SubscriptionController {
         @Res() response: Response,
         @Param() params: CheckSubParamDto,
     ) {
-        const { shortUuid, clientType } = params;
         if (request.path.startsWith('/assets') || request.path.startsWith('/locales')) {
             response.socket?.destroy();
             return;
         }
+
+        const { shortUuid, clientType } = params;
 
         if (!clientType) {
             return this.subscriptionService.serveSubscriptionPage({

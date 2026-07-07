@@ -1,6 +1,7 @@
 process.title = 'rw-subpage';
 
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
+import { ZodValidationPipe } from 'nestjs-zod';
 import cookieParser from 'cookie-parser';
 import { createLogger } from 'winston';
 import compression from 'compression';
@@ -70,6 +71,8 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalFilters(new NotFoundExceptionFilter());
 
+    app.useGlobalPipes(new ZodValidationPipe());
+
     app.useStaticAssets(assetsPath, {
         index: false,
         dotfiles: 'ignore',
@@ -105,8 +108,16 @@ async function bootstrap(): Promise<void> {
         logger.info('[CONFIG] CUSTOM_SUB_PREFIX: not set');
     }
 
+    const corsOrigin = config.get('CORS_ORIGIN');
+    const allowedOrigins = corsOrigin
+        ? corsOrigin
+              .split(',')
+              .map((origin) => origin.trim())
+              .filter(Boolean)
+        : [];
+
     app.enableCors({
-        origin: '*',
+        origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
         methods: 'GET',
         credentials: false,
     });

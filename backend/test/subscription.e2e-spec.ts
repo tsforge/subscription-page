@@ -72,8 +72,13 @@ describe('Subscription (e2e)', () => {
             );
         });
 
-        it('drops the connection for an unknown clientType', async () => {
-            await expect(get(`/${SHORT_UUID}/not-a-real-type`)).rejects.toThrow();
+        it('rejects an unknown clientType with 400 before reaching the panel', async () => {
+            axios.getSubscription.mockClear();
+
+            const res = await get(`/${SHORT_UUID}/not-a-real-type`);
+
+            expect(res.status).toBe(400);
+            expect(axios.getSubscription).not.toHaveBeenCalled();
         });
 
         it('drops the connection when the panel returns no subscription', async () => {
@@ -119,11 +124,37 @@ describe('Subscription (e2e)', () => {
     });
 
     describe('requests that must never reach the panel', () => {
-        it('drops static-asset paths (favicon) instead of proxying them', async () => {
+        it('rejects static-asset paths (favicon) with 400 instead of proxying them', async () => {
             axios.getSubscription.mockClear();
 
-            await expect(get('/favicon.ico')).rejects.toThrow();
+            const res = await get('/favicon.ico');
+
+            expect(res.status).toBe(400);
             expect(axios.getSubscription).not.toHaveBeenCalled();
+        });
+
+        it('rejects a malformed shortUuid (wrong length/charset) with 400', async () => {
+            axios.getSubscription.mockClear();
+
+            expect((await get('/abc')).status).toBe(400);
+            expect((await get('/aaaaaaaaaaaaaaa!')).status).toBe(400);
+            expect(axios.getSubscription).not.toHaveBeenCalled();
+        });
+
+        it('lets a Marzban-legacy-length token through the param validation', async () => {
+            axios.getSubscription.mockClear();
+            const legacyToken = 'Ym9iLDE3MDAwMDAwMDA0jNJZb8HHS';
+
+            const res = await get(`/${legacyToken}`);
+
+            expect(res.status).toBe(200);
+            expect(axios.getSubscription).toHaveBeenCalledWith(
+                expect.any(String),
+                legacyToken,
+                expect.any(Object),
+                false,
+                undefined,
+            );
         });
 
         it('drops /assets/* without a valid session cookie (assets guard)', async () => {

@@ -4,13 +4,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { getJWTConfig } from '@common/config/jwt/jwt.config';
 
 import { MarzbanModule } from '@modules/marzban/marzban.module';
+import { InjectorModule } from '@modules/injector';
 
 import { SubscriptionController } from './subscription.controller';
 import { SubpageConfigService } from './subpage-config.service';
 import { SubscriptionService } from './subscription.service';
 
 @Module({
-    imports: [JwtModule.registerAsync(getJWTConfig()), MarzbanModule],
+    imports: [JwtModule.registerAsync(getJWTConfig()), MarzbanModule, InjectorModule],
     controllers: [SubscriptionController],
     providers: [SubscriptionService, SubpageConfigService],
 })

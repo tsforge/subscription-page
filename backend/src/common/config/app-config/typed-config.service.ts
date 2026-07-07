@@ -8,11 +8,11 @@ import { ConfigSchema } from '@common/config/app-config';
 export class TypedConfigService {
     constructor(private readonly config: ConfigService<ConfigSchema, true>) {}
 
-    get<K extends keyof ConfigSchema>(key: K): ConfigSchema[K] {
-        return this.config.get(key, { infer: true }) as ConfigSchema[K];
+    public get<K extends keyof ConfigSchema>(key: K) {
+        return this.config.get(key, { infer: true });
     }
 
-    getOrThrow<K extends keyof ConfigSchema>(key: K): ConfigSchema[K] {
-        return this.config.getOrThrow(key, { infer: true }) as ConfigSchema[K];
+    public getOrThrow<K extends keyof ConfigSchema>(key: K) {
+        return this.config.getOrThrow(key, { infer: true });
     }
 }

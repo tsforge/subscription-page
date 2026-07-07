@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from 'nestjs-zod';
 import cookieParser from 'cookie-parser';
 import path from 'node:path';
 import { vi } from 'vitest';
@@ -79,6 +80,7 @@ export async function createTestApp(): Promise<TestApp> {
     app.set('trust proxy', 1);
     app.use(cookieParser());
     app.use(noRobotsMiddleware, proxyCheckMiddleware, checkAssetsCookieMiddleware, getRealIp);
+    app.useGlobalPipes(new ZodValidationPipe());
 
     app.engine('html', ejs.renderFile);
     app.setViewEngine('html');

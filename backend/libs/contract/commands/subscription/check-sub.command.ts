@@ -1,20 +1,24 @@
 import { z } from 'zod';
 
-export namespace CheckSubCommand {
-    export const CLIENT_TYPES = [
-        'stash',
-        'singbox',
-        'mihomo',
-        'json',
-        'v2ray-json',
-        'clash',
-    ] as const;
+import { CLIENT_TYPES_ARRAY } from '../../constants';
 
-    export type TClient = (typeof CLIENT_TYPES)[number];
+export namespace CheckSubCommand {
+    // Remnawave shortUuid is a 16-char nanoid (url-safe alphabet).
+    export const SHORT_UUID_REGEX = /^[A-Za-z0-9_-]{16}$/;
+
+    // Marzban legacy links carry a longer token in the same path segment:
+    // base64url (secret-key scheme) or a JWT (dot-separated). Length is capped
+    // so arbitrary garbage never flows through to the panel.
+    export const MARZBAN_LEGACY_TOKEN_REGEX = /^[A-Za-z0-9_=.-]{17,2048}$/;
 
     export const RequestParamSchema = z.object({
-        shortUuid: z.string().min(16, 'shortUuid is required').max(16, 'shortUuid is required'),
-        clientType: z.optional(z.enum(CLIENT_TYPES)),
+        shortUuid: z
+            .string()
+            .refine(
+                (value) => SHORT_UUID_REGEX.test(value) || MARZBAN_LEGACY_TOKEN_REGEX.test(value),
+                'shortUuid must be a 16-char id or a Marzban legacy token',
+            ),
+        clientType: z.optional(z.enum(CLIENT_TYPES_ARRAY)),
     });
 
     export type RequestParam = z.infer<typeof RequestParamSchema>;

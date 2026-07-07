@@ -1,3 +1,4 @@
+export * from './assert-never';
 export * from './filter-logs';
 export * from './sanitize-username';
 export * from './sleep';

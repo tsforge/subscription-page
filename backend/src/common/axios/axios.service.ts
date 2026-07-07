@@ -319,8 +319,6 @@ export class AxiosService implements OnModuleInit {
                     Authorization: undefined,
                 },
             });
-            console.error('dsadasdsadsasdsa');
-            console.log(response.data);
 
             return {
                 response: response.data,
